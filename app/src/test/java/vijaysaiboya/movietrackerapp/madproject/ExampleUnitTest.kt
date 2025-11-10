@@ -1,4 +1,4 @@
-package vijaysaiboya.project.movietrackerapp
+package vijaysaiboya.movietrackerapp.madproject
 
 import org.junit.Test
 

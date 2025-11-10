@@ -1,4 +1,4 @@
-package vijaysaiboya.project.movietrackerapp.ui.theme
+package vijaysaiboya.movietrackerapp.madproject.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

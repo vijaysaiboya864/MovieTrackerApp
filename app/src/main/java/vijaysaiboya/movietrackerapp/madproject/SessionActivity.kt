@@ -1,6 +1,9 @@
-package vijaysaiboya.project.movietrackerapp
+package vijaysaiboya.movietrackerapp.madproject
 
+import android.R.attr.password
 import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -33,6 +36,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.google.firebase.database.FirebaseDatabase
+import kotlin.jvm.java
 
 class SessionActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,9 +50,8 @@ class SessionActivity : ComponentActivity() {
 
 @Composable
 fun SessionActivityScreen() {
-    var studentEmail by remember { mutableStateOf("") }
-    var studentPassword by remember { mutableStateOf("") }
-
+    var fanEmail by remember { mutableStateOf("") }
+    var fanPassword by remember { mutableStateOf("") }
 
     val context = LocalContext.current as Activity
 
@@ -90,8 +94,8 @@ fun SessionActivityScreen() {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp),
-            value = studentEmail,
-            onValueChange = { studentEmail = it },
+            value = fanEmail,
+            onValueChange = { fanEmail = it },
             shape = RoundedCornerShape(12.dp),
             colors = TextFieldDefaults.colors(
                 focusedTextColor = Color.White,
@@ -121,8 +125,8 @@ fun SessionActivityScreen() {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp),
-            value = studentPassword,
-            onValueChange = { studentPassword = it },
+            value = fanPassword,
+            onValueChange = { fanPassword = it },
             shape = RoundedCornerShape(12.dp),
             colors = TextFieldDefaults.colors(
                 focusedTextColor = Color.White,
@@ -139,16 +143,22 @@ fun SessionActivityScreen() {
         Button(
             onClick = {
                 when {
-                    studentEmail.isEmpty() -> {
+                    fanEmail.isEmpty() -> {
                         Toast.makeText(context, " Please Enter Mail", Toast.LENGTH_SHORT).show()
                     }
 
-                    studentPassword.isEmpty() -> {
+                    fanPassword.isEmpty() -> {
                         Toast.makeText(context, " Please Enter Password", Toast.LENGTH_SHORT)
                             .show()
                     }
 
                     else -> {
+
+                        val fanData = FanData(
+                            email = fanEmail,
+                            password = fanPassword
+                        )
+                        loginFanAccount(fanData.email, userPassword = fanData.password,context)
 
                     }
 
@@ -194,8 +204,8 @@ fun SessionActivityScreen() {
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 color = Color.White,
                 modifier = Modifier.clickable {
-//                    context.startActivity(Intent(context, JoinActivity::class.java))
-//                    context.finish()
+                    context.startActivity(Intent(context, AccountRegistrationActivity::class.java))
+                    context.finish()
                 }
             )
 
@@ -213,4 +223,31 @@ fun SessionActivityScreen() {
 
     }
 
+}
+
+fun loginFanAccount(userEmail: String,userPassword: String,context: Context) {
+    val database = FirebaseDatabase.getInstance()
+    val databaseReference = database.reference
+
+    val sanitizedEmail = userEmail.replace(".", ",")
+
+    databaseReference.child("FanAccounts").child(sanitizedEmail).get()
+        .addOnSuccessListener { snapshot ->
+            if (snapshot.exists()) {
+                val chefData = snapshot.getValue(FanData::class.java)
+                chefData?.let {
+
+                    if (userPassword == it.password) {
+                        Toast.makeText(context, "Login Successfull", Toast.LENGTH_SHORT).show()
+                    }
+                    else{
+                        Toast.makeText(context,"Incorrect Credentials",Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } else {
+                Toast.makeText(context,"No User Found",Toast.LENGTH_SHORT).show()
+            }
+        }.addOnFailureListener { exception ->
+            println("Error retrieving data: ${exception.message}")
+        }
 }
