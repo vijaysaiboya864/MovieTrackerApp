@@ -36,6 +36,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.startActivity
 import com.google.firebase.database.FirebaseDatabase
 import kotlin.jvm.java
 
@@ -239,6 +240,9 @@ fun loginFanAccount(userEmail: String,userPassword: String,context: Context) {
 
                     if (userPassword == it.password) {
                         Toast.makeText(context, "Login Successfull", Toast.LENGTH_SHORT).show()
+
+                        context.startActivity(Intent(context, DashboardActivity::class.java))
+                        (context as Activity).finish()
                     }
                     else{
                         Toast.makeText(context,"Incorrect Credentials",Toast.LENGTH_SHORT).show()
