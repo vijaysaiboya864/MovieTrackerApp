@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.firebase.database.FirebaseDatabase
 
@@ -46,6 +47,12 @@ class AccountRegistrationActivity : ComponentActivity() {
     }
 }
 
+@Preview(showBackground = true)
+@Composable
+fun AccountRegistrationScreenPreview() {
+    AccountRegistrationScreen()
+}
+
 @Composable
 fun AccountRegistrationScreen() {
     var fanName by remember { mutableStateOf("") }
@@ -54,7 +61,7 @@ fun AccountRegistrationScreen() {
     var fanPassword by remember { mutableStateOf("") }
 
 
-    val context = LocalContext.current as Activity
+    val context = LocalContext.current.findActivity()
 
     Column(
         modifier = Modifier
@@ -229,7 +236,7 @@ fun AccountRegistrationScreen() {
                             country = fanCountry,
                             password = fanPassword
                         )
-                        registerAccount(fanData,context)
+                        registerAccount(fanData,context!!)
                     }
 
                 }
@@ -274,7 +281,7 @@ fun AccountRegistrationScreen() {
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 color = Color.White,
                 modifier = Modifier.clickable {
-                    context.startActivity(Intent(context, SessionActivity::class.java))
+                    context!!.startActivity(Intent(context, SessionActivity::class.java))
                     context.finish()
                 }
             )

@@ -25,6 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.CoroutineScope
@@ -155,4 +156,10 @@ fun SplashScrOnBoardingScreenD() {
         }
     }
 
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SplashScrOnBoardingScreenDPreview() {
+    SplashScrOnBoardingScreenD()
 }

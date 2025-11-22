@@ -1,8 +1,8 @@
 package vijaysaiboya.movietrackerapp.madproject
 
-import android.R.attr.password
 import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
@@ -35,10 +35,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat.startActivity
 import com.google.firebase.database.FirebaseDatabase
-import kotlin.jvm.java
 
 class SessionActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,12 +48,19 @@ class SessionActivity : ComponentActivity() {
     }
 }
 
+
+@Preview(showBackground = true)
+@Composable
+fun SessionActivityScreenPreview() {
+    SessionActivityScreen()
+}
+
 @Composable
 fun SessionActivityScreen() {
     var fanEmail by remember { mutableStateOf("") }
     var fanPassword by remember { mutableStateOf("") }
 
-    val context = LocalContext.current as Activity
+    val context = LocalContext.current.findActivity()
 
     Column(
         modifier = Modifier
@@ -159,7 +165,7 @@ fun SessionActivityScreen() {
                             email = fanEmail,
                             password = fanPassword
                         )
-                        loginFanAccount(fanData.email, userPassword = fanData.password,context)
+                        loginFanAccount(fanData.email, userPassword = fanData.password,context!!)
 
                     }
 
@@ -205,7 +211,7 @@ fun SessionActivityScreen() {
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 color = Color.White,
                 modifier = Modifier.clickable {
-                    context.startActivity(Intent(context, AccountRegistrationActivity::class.java))
+                    context!!.startActivity(Intent(context, AccountRegistrationActivity::class.java))
                     context.finish()
                 }
             )
@@ -224,6 +230,12 @@ fun SessionActivityScreen() {
 
     }
 
+}
+
+fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }
 
 fun loginFanAccount(userEmail: String,userPassword: String,context: Context) {
