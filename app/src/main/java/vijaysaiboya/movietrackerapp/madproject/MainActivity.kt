@@ -118,6 +118,8 @@ fun SplashScrOnBoardingScreenD() {
                     )
 
                     Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
+
 
                     Text(
                         text = "Latest Movies",
@@ -129,6 +131,8 @@ fun SplashScrOnBoardingScreenD() {
                     )
 
                     Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
+
 
                     Text(
                         text = "Saved Movies",
@@ -140,6 +144,8 @@ fun SplashScrOnBoardingScreenD() {
                     )
 
                     Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
+
 
                     Text(
                         text = "Super Hit Movies",
