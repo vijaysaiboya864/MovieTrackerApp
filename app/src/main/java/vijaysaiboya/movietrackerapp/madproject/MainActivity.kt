@@ -1,6 +1,5 @@
 package vijaysaiboya.movietrackerapp.madproject
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -17,7 +16,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,38 +27,78 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlin.jvm.java
+import vijaysaiboya.movietrackerapp.madproject.ui.theme.PrimaryBlack
+import vijaysaiboya.movietrackerapp.madproject.ui.theme.PrimaryBlue
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            OnBoardingScreen(::validateStatus)
+            MyAppNavGraph()
         }
     }
 
-    private fun validateStatus(studentStatus: Int) {
-        if (studentStatus == 2) {
-            startActivity(Intent(this, SessionActivity::class.java))
-            finish()
-        }
 
-    }
 }
 
 @Composable
-fun OnBoardingScreen(onLoginClick: (studentStatus: Int) -> Unit) {
+fun MyAppNavGraph() {
+    val navController = rememberNavController()
+
+    NavHost(
+        navController = navController,
+        startDestination = AppScreens.Splash.route
+    ) {
+        composable(AppScreens.Splash.route) {
+            OnBoardingScreen(navController = navController)
+        }
+
+        composable(AppScreens.Login.route) {
+            SessionActivityScreen(navController = navController)
+        }
+
+        composable(AppScreens.Register.route) {
+            AccountRegistrationScreen(navController = navController)
+        }
+
+
+        composable(AppScreens.Home.route) {
+            HomeScreen()
+        }
+
+
+    }
+
+}
+
+
+@Composable
+fun OnBoardingScreen(navController: NavController) {
+
     val context = LocalContext.current
 
-    SideEffect {
-        CoroutineScope(Dispatchers.Main).launch {
-            delay(3000)
-            onLoginClick.invoke(2)
+    LaunchedEffect(Unit) {
+        delay(3000)
+
+        if (UserPrefs.checkLoginStatus(context)) {
+            navController.navigate(AppScreens.Home.route) {
+                popUpTo(AppScreens.Splash.route) {
+                    inclusive = true
+                }
+            }
+        } else {
+            navController.navigate(AppScreens.Login.route) {
+                popUpTo(AppScreens.Splash.route) {
+                    inclusive = true
+                }
+            }
         }
+
     }
 
     SplashScrOnBoardingScreenD()
@@ -71,7 +110,7 @@ fun SplashScrOnBoardingScreenD() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = colorResource(id = R.color.evergreen)),
+            .background(PrimaryBlack),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -97,7 +136,7 @@ fun SplashScrOnBoardingScreenD() {
                 Column(
                     modifier = Modifier
                         .width(300.dp)
-                        .background(color = Color.Transparent),
+                        .background(color = PrimaryBlue),
                 )
                 {
                     Image(
@@ -124,7 +163,7 @@ fun SplashScrOnBoardingScreenD() {
                     Text(
                         text = "Latest Movies",
                         fontWeight = FontWeight.Bold,
-                        color = colorResource(id = R.color.evergreen), // Green color similar to the design
+                        color = Color.White, // Green color similar to the design
                         fontSize = 26.sp,
                         style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
                         modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -137,7 +176,7 @@ fun SplashScrOnBoardingScreenD() {
                     Text(
                         text = "Saved Movies",
                         fontWeight = FontWeight.Bold,
-                        color = colorResource(id = R.color.evergreen), // Green color similar to the design
+                        color = Color.White, // Green color similar to the design
                         fontSize = 26.sp,
                         style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
                         modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -150,7 +189,7 @@ fun SplashScrOnBoardingScreenD() {
                     Text(
                         text = "Super Hit Movies",
                         fontWeight = FontWeight.Bold,
-                        color = colorResource(id = R.color.evergreen), // Green color similar to the design
+                        color = Color.White,
                         fontSize = 26.sp,
                         style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
                         modifier = Modifier.align(Alignment.CenterHorizontally)

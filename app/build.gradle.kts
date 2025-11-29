@@ -77,4 +77,7 @@ dependencies {
     implementation("androidx.compose.material3:material3:1.2.0")
     implementation("io.coil-kt:coil-compose:2.5.0")
 
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
+
+
 }

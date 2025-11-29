@@ -3,11 +3,7 @@ package vijaysaiboya.movietrackerapp.madproject
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
-import android.content.Intent
-import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -37,26 +33,21 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.google.firebase.database.FirebaseDatabase
-
-class SessionActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            SessionActivityScreen()
-        }
-    }
-}
+import vijaysaiboya.movietrackerapp.madproject.ui.theme.PrimaryBlack
+import vijaysaiboya.movietrackerapp.madproject.ui.theme.PrimaryBlue
 
 
 @Preview(showBackground = true)
 @Composable
 fun SessionActivityScreenPreview() {
-    SessionActivityScreen()
+    SessionActivityScreen(navController = NavHostController(LocalContext.current))
 }
 
 @Composable
-fun SessionActivityScreen() {
+fun SessionActivityScreen(navController: NavController) {
     var fanEmail by remember { mutableStateOf("") }
     var fanPassword by remember { mutableStateOf("") }
 
@@ -65,7 +56,7 @@ fun SessionActivityScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = colorResource(id = R.color.evergreen))
+            .background(PrimaryBlack)
     ) {
         Spacer(modifier = Modifier.height(94.dp))
 
@@ -107,7 +98,7 @@ fun SessionActivityScreen() {
             colors = TextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
-                unfocusedContainerColor = colorResource(id = R.color.evergreen),
+                unfocusedContainerColor = Color.DarkGray,
                 unfocusedIndicatorColor = Color.White,
                 focusedContainerColor = colorResource(id = R.color.evergreen),
                 focusedIndicatorColor = Color.White
@@ -138,7 +129,7 @@ fun SessionActivityScreen() {
             colors = TextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
-                unfocusedContainerColor = colorResource(id = R.color.evergreen),
+                unfocusedContainerColor = Color.DarkGray,
                 unfocusedIndicatorColor = Color.White,
                 focusedContainerColor = colorResource(id = R.color.evergreen),
                 focusedIndicatorColor = Color.White
@@ -165,7 +156,12 @@ fun SessionActivityScreen() {
                             email = fanEmail,
                             password = fanPassword
                         )
-                        loginFanAccount(fanData.email, userPassword = fanData.password,context!!)
+                        loginFanAccount(
+                            fanData.email,
+                            userPassword = fanData.password,
+                            context!!,
+                            navController
+                        )
 
                     }
 
@@ -176,10 +172,8 @@ fun SessionActivityScreen() {
                 .align(Alignment.CenterHorizontally)
                 .padding(horizontal = 12.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = colorResource(id = R.color.misty_mint),
-                contentColor = colorResource(
-                    id = R.color.evergreen
-                )
+                containerColor = PrimaryBlue,
+                contentColor = Color.White
             ),
             shape = RoundedCornerShape(12.dp)
         ) {
@@ -211,8 +205,13 @@ fun SessionActivityScreen() {
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 color = Color.White,
                 modifier = Modifier.clickable {
-                    context!!.startActivity(Intent(context, AccountRegistrationActivity::class.java))
-                    context.finish()
+
+                    navController.navigate(AppScreens.Register.route) {
+                        popUpTo(AppScreens.Login.route) {
+                            inclusive = true
+                        }
+                    }
+
                 }
             )
 
@@ -238,7 +237,12 @@ fun Context.findActivity(): Activity? = when (this) {
     else -> null
 }
 
-fun loginFanAccount(userEmail: String,userPassword: String,context: Context) {
+fun loginFanAccount(
+    userEmail: String,
+    userPassword: String,
+    context: Context,
+    navController: NavController
+) {
     val database = FirebaseDatabase.getInstance()
     val databaseReference = database.reference
 
@@ -251,17 +255,29 @@ fun loginFanAccount(userEmail: String,userPassword: String,context: Context) {
                 chefData?.let {
 
                     if (userPassword == it.password) {
+
+                        UserPrefs.markLoginStatus(context, true)
+                        UserPrefs.saveEmail(
+                            context,
+                            email = userEmail
+                        )
+                        UserPrefs.saveName(context, it.name)
+
+
                         Toast.makeText(context, "Login Successfull", Toast.LENGTH_SHORT).show()
 
-                        context.startActivity(Intent(context, DashboardActivity::class.java))
-                        (context as Activity).finish()
-                    }
-                    else{
-                        Toast.makeText(context,"Incorrect Credentials",Toast.LENGTH_SHORT).show()
+                        navController.navigate(AppScreens.Home.route) {
+                            popUpTo(AppScreens.Login.route) {
+                                inclusive = true
+                            }
+                        }
+
+                    } else {
+                        Toast.makeText(context, "Incorrect Credentials", Toast.LENGTH_SHORT).show()
                     }
                 }
             } else {
-                Toast.makeText(context,"No User Found",Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "No User Found", Toast.LENGTH_SHORT).show()
             }
         }.addOnFailureListener { exception ->
             println("Error retrieving data: ${exception.message}")

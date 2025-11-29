@@ -10,15 +10,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MovieTrackerApp"
         tools:targetApi="31">
-        <activity
-            android:name=".DashboardActivity"
-            android:exported="false" />
-        <activity
-            android:name=".AccountRegistrationActivity"
-            android:exported="false" />
-        <activity
-            android:name=".SessionActivity"
-            android:exported="false" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

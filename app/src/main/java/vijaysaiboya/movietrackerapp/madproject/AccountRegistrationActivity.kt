@@ -1,12 +1,7 @@
 package vijaysaiboya.movietrackerapp.madproject
 
-import android.app.Activity
 import android.content.Context
-import android.content.Intent
-import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -36,25 +31,21 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.google.firebase.database.FirebaseDatabase
+import vijaysaiboya.movietrackerapp.madproject.ui.theme.PrimaryBlack
+import vijaysaiboya.movietrackerapp.madproject.ui.theme.PrimaryBlue
 
-class AccountRegistrationActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            AccountRegistrationScreen()
-        }
-    }
-}
 
 @Preview(showBackground = true)
 @Composable
 fun AccountRegistrationScreenPreview() {
-    AccountRegistrationScreen()
+    AccountRegistrationScreen(navController = NavHostController(LocalContext.current))
 }
 
 @Composable
-fun AccountRegistrationScreen() {
+fun AccountRegistrationScreen(navController: NavController) {
     var fanName by remember { mutableStateOf("") }
     var fanCountry by remember { mutableStateOf("") }
     var fanEmail by remember { mutableStateOf("") }
@@ -66,9 +57,9 @@ fun AccountRegistrationScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = colorResource(id = R.color.evergreen))
+            .background(PrimaryBlack)
     ) {
-        Spacer(modifier = Modifier.height(94.dp))
+        Spacer(modifier = Modifier.height(64.dp))
 
         Text(
             modifier = Modifier.align(Alignment.CenterHorizontally),
@@ -108,9 +99,9 @@ fun AccountRegistrationScreen() {
             colors = TextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
-                unfocusedContainerColor = colorResource(id = R.color.evergreen),
+                unfocusedContainerColor = Color.DarkGray,
                 unfocusedIndicatorColor = Color.White,
-                focusedContainerColor = colorResource(id = R.color.evergreen),
+                focusedContainerColor = Color.DarkGray,
                 focusedIndicatorColor = Color.White
             )
         )
@@ -139,9 +130,9 @@ fun AccountRegistrationScreen() {
             colors = TextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
-                unfocusedContainerColor = colorResource(id = R.color.evergreen),
+                unfocusedContainerColor = Color.DarkGray,
                 unfocusedIndicatorColor = Color.White,
-                focusedContainerColor = colorResource(id = R.color.evergreen),
+                focusedContainerColor = Color.DarkGray,
                 focusedIndicatorColor = Color.White
             )
         )
@@ -170,9 +161,9 @@ fun AccountRegistrationScreen() {
             colors = TextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
-                unfocusedContainerColor = colorResource(id = R.color.evergreen),
+                unfocusedContainerColor = Color.DarkGray,
                 unfocusedIndicatorColor = Color.White,
-                focusedContainerColor = colorResource(id = R.color.evergreen),
+                focusedContainerColor = Color.DarkGray,
                 focusedIndicatorColor = Color.White
             )
         )
@@ -201,9 +192,9 @@ fun AccountRegistrationScreen() {
             colors = TextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
-                unfocusedContainerColor = colorResource(id = R.color.evergreen),
+                unfocusedContainerColor = Color.DarkGray,
                 unfocusedIndicatorColor = Color.White,
-                focusedContainerColor = colorResource(id = R.color.evergreen),
+                focusedContainerColor = Color.DarkGray,
                 focusedIndicatorColor = Color.White
             )
         )
@@ -216,7 +207,8 @@ fun AccountRegistrationScreen() {
                     fanName.isEmpty() -> {
                         Toast.makeText(context, " Please Enter Name", Toast.LENGTH_SHORT).show()
                     }
-                    fanCountry.isEmpty() ->{
+
+                    fanCountry.isEmpty() -> {
                         Toast.makeText(context, " Please Enter Country", Toast.LENGTH_SHORT).show()
                     }
 
@@ -236,7 +228,7 @@ fun AccountRegistrationScreen() {
                             country = fanCountry,
                             password = fanPassword
                         )
-                        registerAccount(fanData,context!!)
+                        registerAccount(fanData, context!!, navController)
                     }
 
                 }
@@ -246,10 +238,8 @@ fun AccountRegistrationScreen() {
                 .align(Alignment.CenterHorizontally)
                 .padding(horizontal = 12.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = colorResource(id = R.color.misty_mint),
-                contentColor = colorResource(
-                    id = R.color.evergreen
-                )
+                containerColor = PrimaryBlue,
+                contentColor = Color.White
             ),
             shape = RoundedCornerShape(12.dp)
         ) {
@@ -281,8 +271,13 @@ fun AccountRegistrationScreen() {
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 color = Color.White,
                 modifier = Modifier.clickable {
-                    context!!.startActivity(Intent(context, SessionActivity::class.java))
-                    context.finish()
+
+                    navController.navigate(AppScreens.Login.route) {
+                        popUpTo(AppScreens.Register.route) {
+                            inclusive = true
+                        }
+                    }
+
                 }
             )
 
@@ -302,7 +297,7 @@ fun AccountRegistrationScreen() {
 
 }
 
-private fun registerAccount(fanData: FanData,context: Context){
+private fun registerAccount(fanData: FanData, context: Context, navController: NavController) {
     val db = FirebaseDatabase.getInstance()
     val ref = db.getReference("FanAccounts")
     ref.child(fanData.email.replace(".", ",")).setValue(fanData)
@@ -310,13 +305,13 @@ private fun registerAccount(fanData: FanData,context: Context){
             if (task.isSuccessful) {
                 Toast.makeText(context, "Registration Successful", Toast.LENGTH_SHORT).show()
 
-                context.startActivity(
-                    Intent(
-                        context,
-                        SessionActivity::class.java
-                    )
-                )
-                (context as Activity).finish()
+                navController.navigate(AppScreens.Login.route) {
+                    popUpTo(AppScreens.Register.route) {
+                        inclusive = true
+                    }
+                }
+
+
             } else {
                 Toast.makeText(
                     context,
@@ -338,7 +333,7 @@ private fun registerAccount(fanData: FanData,context: Context){
 data class FanData
     (
     var name: String = "",
-    var country: String ="",
-    var email: String ="",
-    var password: String ="",
+    var country: String = "",
+    var email: String = "",
+    var password: String = "",
 )
