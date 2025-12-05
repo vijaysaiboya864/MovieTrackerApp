@@ -66,11 +66,9 @@ fun MyAppNavGraph() {
             AccountRegistrationScreen(navController = navController)
         }
 
-
         composable(AppScreens.Home.route) {
             HomeScreen()
         }
-
 
     }
 

@@ -2,6 +2,7 @@ package vijaysaiboya.movietrackerapp.madproject.fragments
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,8 +36,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import vijaysaiboya.movietrackerapp.madproject.ui.theme.PrimaryBlack
@@ -46,7 +51,7 @@ import java.net.URL
 
 
 @Composable
-fun SearchMoviesScreen() {
+fun SearchMoviesScreen(navController: NavHostController) {
 
     var search by remember { mutableStateOf("") }
     var selectedGenre by remember { mutableStateOf("All") }
@@ -54,47 +59,79 @@ fun SearchMoviesScreen() {
     var filteredMovies by remember { mutableStateOf(listOf<Movie>()) }
     var loading by remember { mutableStateOf(true) }
 
-    val genres = listOf("All", "Action", "Comedy", "Drama", "Crime", "Sci-Fi", "Romance", "Thriller")
+    val genres = listOf("All", "Action", "Comedy", "Drama", "Crime", "Romance", "Sci-Fi", "Thriller", "Other")
 
+    // Fast keywords for initial load
+    val fastKeywords = listOf("movie", "best", "new")
+
+    // Load initial movies — FAST
     LaunchedEffect(Unit) {
         loading = true
-        val initialList = fetchInitialMovies()
 
-        // Get genres for each movie
-        val moviesWithGenre = initialList.map { movie ->
-            val genre = fetchMovieGenre(movie.imdbId)
-            movie.copy(genre = genre)
+        val results = coroutineScope {
+            fastKeywords.map { key ->
+                async { fetchMoviesFromOMDb(key) }
+            }.awaitAll().flatten()
         }
 
-        movies = moviesWithGenre
-        filteredMovies = moviesWithGenre
+        // Add FAST genre prediction
+        val withGenre = results
+            .distinctBy { it.imdbId }
+            .take(100)
+            .map { it.copy(genre = guessGenre(it.title)) }
+
+        movies = withGenre
+        filteredMovies = withGenre
+
         loading = false
     }
 
+    // Search movies
     LaunchedEffect(search) {
         if (search.length >= 3) {
             loading = true
+
             val results = fetchMoviesFromOMDb(search)
+            val withGenre = results.map { it.copy(genre = guessGenre(it.title)) }
 
-            // fetch genre for each result
-            val listWithGenre = results.map { movie ->
-                val genre = fetchMovieGenre(movie.imdbId)
-                movie.copy(genre = genre)
-            }
-
-            movies = listWithGenre
+            movies = withGenre
+            filteredMovies = withGenre
             loading = false
-        }
-    }
-
-    LaunchedEffect(selectedGenre, movies) {
-        filteredMovies = if (selectedGenre == "All") {
-            movies
         } else {
-            movies.filter { it.genre.contains(selectedGenre, ignoreCase = true) }
+            filteredMovies = movies
         }
     }
 
+    // Apply Genre Filter
+    LaunchedEffect(selectedGenre) {
+
+        if (selectedGenre == "All") {
+            filteredMovies = movies
+            return@LaunchedEffect
+        }
+
+        loading = true
+
+        // Get keywords for selected genre
+        val keywords = genreKeywords(selectedGenre)
+
+        // Parallel OMDb calls
+        val results = coroutineScope {
+            keywords.map { key ->
+                async { fetchMoviesFromOMDb(key) }
+            }.awaitAll().flatten()
+        }
+
+        filteredMovies = results.distinctBy { it.imdbId }
+
+        loading = false
+    }
+
+
+
+    // ================================
+    // UI
+    // ================================
     Column(
         Modifier
             .fillMaxSize()
@@ -118,6 +155,7 @@ fun SearchMoviesScreen() {
 
         Spacer(Modifier.height(16.dp))
 
+        // Genre Filter Chips
         LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             items(genres) { g ->
                 FilterChip(
@@ -156,6 +194,9 @@ fun SearchMoviesScreen() {
                     Column(
                         modifier = Modifier
                             .background(Color(0xFF26252B), RoundedCornerShape(12.dp))
+                            .clickable {
+                                navController.navigate("details/${movie.imdbId}")
+                            }
                     ) {
 
                         Image(
@@ -180,6 +221,22 @@ fun SearchMoviesScreen() {
     }
 }
 
+fun guessGenre(title: String): String {
+    val t = title.lowercase()
+
+    return when {
+        listOf("war", "man", "battle", "fight", "hero", "dark").any { it in t } -> "Action"
+        listOf("love", "heart", "romance").any { it in t } -> "Romance"
+        listOf("king", "queen", "drama", "life").any { it in t } -> "Drama"
+        listOf("funny", "comedy", "laugh").any { it in t } -> "Comedy"
+        listOf("crime", "detective", "murder").any { it in t } -> "Crime"
+        listOf("future", "space", "alien", "sci-fi", "robot").any { it in t } -> "Sci-Fi"
+        listOf("thrill", "secret", "fear", "dark").any { it in t } -> "Thriller"
+        else -> "Other"
+    }
+}
+
+
 
 suspend fun fetchInitialMovies(): List<Movie> {
 
@@ -195,6 +252,19 @@ suspend fun fetchInitialMovies(): List<Movie> {
     }
 
     return results.distinctBy { it.imdbId }.take(100)
+}
+
+fun genreKeywords(genre: String): List<String> {
+    return when (genre) {
+        "Action" -> listOf("action", "fight", "war", "hero")
+        "Romance" -> listOf("romance", "love", "heart", "kiss")
+        "Drama" -> listOf("drama", "family", "life", "story")
+        "Comedy" -> listOf("comedy", "funny", "laugh", "humor")
+        "Crime" -> listOf("crime", "detective", "murder", "case")
+        "Sci-Fi" -> listOf("scifi", "space", "future", "alien")
+        "Thriller" -> listOf("thriller", "fear", "mystery", "dark")
+        else -> listOf("movie", "best")
+    }
 }
 
 

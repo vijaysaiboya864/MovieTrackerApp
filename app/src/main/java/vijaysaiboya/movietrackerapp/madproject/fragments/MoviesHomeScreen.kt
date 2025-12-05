@@ -1,32 +1,15 @@
 package vijaysaiboya.movietrackerapp.madproject.fragments
 
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -35,6 +18,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -45,9 +29,7 @@ import vijaysaiboya.movietrackerapp.madproject.ui.theme.PrimaryBlue
 import java.net.HttpURLConnection
 import java.net.URL
 
-
 const val OMDB_KEY = "d157a6d6"
-
 
 data class Movie(
     val title: String,
@@ -56,7 +38,9 @@ data class Movie(
     val genre: String = ""
 )
 
-
+// --------------------------------------------------------
+// UPDATED: Fetch imdbID also (required for See Details)
+// --------------------------------------------------------
 suspend fun fetchTopMovies(): List<Movie> {
     val url = "https://www.omdbapi.com/?apikey=$OMDB_KEY&s=top&type=movie"
 
@@ -77,7 +61,8 @@ suspend fun fetchTopMovies(): List<Movie> {
                 movies.add(
                     Movie(
                         title = obj.getString("Title"),
-                        poster = obj.getString("Poster")
+                        poster = obj.getString("Poster"),
+                        imdbId = obj.getString("imdbID")   // ⭐ Needed for details screen
                     )
                 )
             }
@@ -89,19 +74,23 @@ suspend fun fetchTopMovies(): List<Movie> {
     }
 }
 
+// --------------------------------------------------------
+// HOME SCREEN WITH NAVIGATION SUPPORT
+// --------------------------------------------------------
 @Composable
-fun MovieHomeScreen() {
+fun MovieHomeScreen(navController: NavHostController) {
 
     val heroHeight = (LocalConfiguration.current.screenHeightDp * 0.75f).dp
 
     var movies by remember { mutableStateOf(listOf<Movie>()) }
     var currentIndex by remember { mutableStateOf(0) }
 
-    // 🔥 Load Movies from API
+    // Load movies
     LaunchedEffect(Unit) {
         movies = fetchTopMovies()
     }
 
+    // Auto slider
     LaunchedEffect(movies) {
         while (movies.isNotEmpty()) {
             delay(3000)
@@ -115,6 +104,9 @@ fun MovieHomeScreen() {
             .background(PrimaryBlack)
     ) {
 
+        // ==================================================
+        // 1️⃣ HERO MOVIE SLIDER (Background)
+        // ==================================================
         if (movies.isNotEmpty()) {
 
             val movie = movies[currentIndex]
@@ -132,6 +124,7 @@ fun MovieHomeScreen() {
                     modifier = Modifier.fillMaxSize()
                 )
 
+                // Gradient overlay
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -146,7 +139,7 @@ fun MovieHomeScreen() {
                 )
             }
 
-
+            // ----------- Slider Content ------------
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -164,7 +157,9 @@ fun MovieHomeScreen() {
                 Spacer(Modifier.height(12.dp))
 
                 Button(
-                    onClick = {},
+                    onClick = {
+                        navController.navigate("details/${movie.imdbId}")
+                    },
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
                     shape = RoundedCornerShape(30.dp),
                     modifier = Modifier.width(150.dp)
@@ -195,9 +190,46 @@ fun MovieHomeScreen() {
                 CircularProgressIndicator(color = PrimaryBlue)
             }
         }
+
+        // ==================================================
+        // 2️⃣ APP BAR — DRAWN LAST (Always on Top)
+        // ==================================================
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .background(Color(0x44000000), RoundedCornerShape(30.dp))
+                .padding(horizontal = 16.dp, vertical = 10.dp)
+                .align(Alignment.TopCenter),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            Text(
+                "Movie Tracker",
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .background(Color(0x55000000), CircleShape)
+                    .clickable {
+                        navController.navigate("profile")
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Profile",
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
     }
 }
-
-
 
 

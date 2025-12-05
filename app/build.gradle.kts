@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    id("kotlin-kapt")
+
     id("com.google.gms.google-services")
 
 }
@@ -77,7 +79,17 @@ dependencies {
     implementation("androidx.compose.material3:material3:1.2.0")
     implementation("io.coil-kt:coil-compose:2.5.0")
 
+    implementation("androidx.room:room-runtime:2.6.1")
+    annotationProcessor("androidx.room:room-compiler:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+
     implementation("com.google.android.gms:play-services-maps:18.2.0")
+
+    implementation("androidx.compose.material:material-icons-extended")
+
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.32.0")
+
 
 
 }
