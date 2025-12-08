@@ -1,7 +1,5 @@
 package vijaysaiboya.movietrackerapp.madproject
 
-import android.R.attr.password
-import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.Context
 import android.widget.Toast
@@ -28,7 +26,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,10 +34,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -80,7 +75,11 @@ fun AccountRegistrationScreen(navController: NavController) {
     val calendar = Calendar.getInstance()
     val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
 
-    fun openDatePicker(onSelect: (String) -> Unit, minDate: Long? = null) {
+    fun openDatePicker(
+        onSelect: (String) -> Unit,
+        minDate: Long? = null,
+        maxDate: Long? = null
+    ) {
         val dp = DatePickerDialog(
             context1,
             { _, year, month, day ->
@@ -94,43 +93,17 @@ fun AccountRegistrationScreen(navController: NavController) {
             calendar.get(Calendar.DAY_OF_MONTH)
         )
 
-        dp.datePicker.calendarViewShown = true
-        dp.datePicker.spinnersShown = true
+        // Allow selecting date from minimum date
+        minDate?.let { dp.datePicker.minDate = it }
 
-        if (minDate != null) dp.datePicker.minDate = minDate
+        // Allow selecting date up to maximum date
+        maxDate?.let { dp.datePicker.maxDate = it }
 
         dp.show()
     }
 
 
-    @SuppressLint("NewApi")
-    fun openDobPicker(
-        context: Context,
-        onSelect: (String) -> Unit
-    ) {
-        val calendar = Calendar.getInstance()
 
-        val datePicker = DatePickerDialog(
-            context,
-            { _, year, month, dayOfMonth ->
-                val selectedCal = Calendar.getInstance().apply {
-                    set(year, month, dayOfMonth)
-                }
-
-                // Format DOB: dd-MM-yyyy
-                val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
-                onSelect(formatter.format(selectedCal.time))
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        )
-
-        // Prevent future dates
-        datePicker.datePicker.maxDate = System.currentTimeMillis()
-
-        datePicker.show()
-    }
 
 
     Column(
@@ -193,14 +166,7 @@ fun AccountRegistrationScreen(navController: NavController) {
             label = "Date of Birth",
             value = dobDate,
             onClick = {
-                val today = Calendar.getInstance().apply {
-                    set(Calendar.HOUR_OF_DAY, 0)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }.timeInMillis
-
-                openDatePicker({ dobDate = it }, today)
+                openDatePicker({ dobDate = it }, 1990)
             }
         )
         Spacer(modifier = Modifier.height(12.dp))
@@ -296,7 +262,8 @@ fun AccountRegistrationScreen(navController: NavController) {
             ),
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
-                val icon = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+                val icon =
+                    if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
                 val description = if (passwordVisible) "Hide password" else "Show password"
 
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
@@ -321,7 +288,7 @@ fun AccountRegistrationScreen(navController: NavController) {
                         Toast.makeText(context, " Please Enter Name", Toast.LENGTH_SHORT).show()
                     }
 
-                    dobDate.isEmpty() ->{
+                    dobDate.isEmpty() -> {
                         Toast.makeText(context, " Please Enter DOB", Toast.LENGTH_SHORT).show()
                     }
 
@@ -341,7 +308,7 @@ fun AccountRegistrationScreen(navController: NavController) {
                     else -> {
                         val fanData = FanData(
                             name = fanName,
-                            dob =  dobDate,
+                            dob = dobDate,
                             email = fanEmail,
                             country = fanCountry,
                             password = sha256(fanPassword)
@@ -462,8 +429,10 @@ fun DOBDateField(label: String, value: String, onClick: () -> Unit) {
                 value = value,
                 onValueChange = {},
                 readOnly = true,
-                placeholder = {  "Select DOB" },
-                modifier = Modifier.fillMaxWidth().padding(12.dp),
+                placeholder = { "Select DOB" },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = TextFieldDefaults.colors(
                     focusedTextColor = Color.White,
