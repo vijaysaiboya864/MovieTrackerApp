@@ -24,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import vijaysaiboya.movietrackerapp.madproject.AppScreens
 import vijaysaiboya.movietrackerapp.madproject.ui.theme.PrimaryBlack
 import vijaysaiboya.movietrackerapp.madproject.ui.theme.PrimaryBlue
 import java.net.HttpURLConnection
@@ -217,7 +218,7 @@ fun MovieHomeScreen(navController: NavHostController) {
                     .size(42.dp)
                     .background(Color(0x55000000), CircleShape)
                     .clickable {
-                        navController.navigate("profile")
+                        navController.navigate(AppScreens.Profile.route)
                     },
                 contentAlignment = Alignment.Center
             ) {

@@ -1,10 +1,13 @@
 package vijaysaiboya.movietrackerapp.madproject
 
 import android.R.attr.password
+import android.annotation.SuppressLint
+import android.app.DatePickerDialog
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,7 +15,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -46,6 +51,9 @@ import androidx.navigation.NavHostController
 import com.google.firebase.database.FirebaseDatabase
 import vijaysaiboya.movietrackerapp.madproject.ui.theme.PrimaryBlack
 import vijaysaiboya.movietrackerapp.madproject.ui.theme.PrimaryBlue
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 
 @Preview(showBackground = true)
@@ -63,14 +71,73 @@ fun AccountRegistrationScreen(navController: NavController) {
 
     var passwordVisible by remember { mutableStateOf(false) }
 
-
-
     val context = LocalContext.current.findActivity()
+
+    val context1 = LocalContext.current
+
+    var dobDate by remember { mutableStateOf("") }
+
+    val calendar = Calendar.getInstance()
+    val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+
+    fun openDatePicker(onSelect: (String) -> Unit, minDate: Long? = null) {
+        val dp = DatePickerDialog(
+            context1,
+            { _, year, month, day ->
+                val c = Calendar.getInstance().apply {
+                    set(year, month, day)
+                }
+                onSelect(dateFormat.format(c.time))
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        )
+
+        dp.datePicker.calendarViewShown = true
+        dp.datePicker.spinnersShown = true
+
+        if (minDate != null) dp.datePicker.minDate = minDate
+
+        dp.show()
+    }
+
+
+    @SuppressLint("NewApi")
+    fun openDobPicker(
+        context: Context,
+        onSelect: (String) -> Unit
+    ) {
+        val calendar = Calendar.getInstance()
+
+        val datePicker = DatePickerDialog(
+            context,
+            { _, year, month, dayOfMonth ->
+                val selectedCal = Calendar.getInstance().apply {
+                    set(year, month, dayOfMonth)
+                }
+
+                // Format DOB: dd-MM-yyyy
+                val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+                onSelect(formatter.format(selectedCal.time))
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        )
+
+        // Prevent future dates
+        datePicker.datePicker.maxDate = System.currentTimeMillis()
+
+        datePicker.show()
+    }
+
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(PrimaryBlack)
+            .verticalScroll(rememberScrollState())
     ) {
         Spacer(modifier = Modifier.height(64.dp))
 
@@ -119,6 +186,23 @@ fun AccountRegistrationScreen(navController: NavController) {
             )
         )
 
+        Spacer(modifier = Modifier.height(12.dp))
+
+
+        DOBDateField(
+            label = "Date of Birth",
+            value = dobDate,
+            onClick = {
+                val today = Calendar.getInstance().apply {
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }.timeInMillis
+
+                openDatePicker({ dobDate = it }, today)
+            }
+        )
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
@@ -237,6 +321,10 @@ fun AccountRegistrationScreen(navController: NavController) {
                         Toast.makeText(context, " Please Enter Name", Toast.LENGTH_SHORT).show()
                     }
 
+                    dobDate.isEmpty() ->{
+                        Toast.makeText(context, " Please Enter DOB", Toast.LENGTH_SHORT).show()
+                    }
+
                     fanCountry.isEmpty() -> {
                         Toast.makeText(context, " Please Enter Country", Toast.LENGTH_SHORT).show()
                     }
@@ -253,6 +341,7 @@ fun AccountRegistrationScreen(navController: NavController) {
                     else -> {
                         val fanData = FanData(
                             name = fanName,
+                            dob =  dobDate,
                             email = fanEmail,
                             country = fanCountry,
                             password = sha256(fanPassword)
@@ -358,10 +447,48 @@ private fun registerAccount(fanData: FanData, context: Context, navController: N
         }
 }
 
+@Composable
+fun DOBDateField(label: String, value: String, onClick: () -> Unit) {
+    Column {
+        Text(
+            modifier = Modifier.padding(start = 12.dp),
+            text = label,
+            color = Color.White
+        )
+        Spacer(Modifier.height(6.dp))
+
+        Box {
+            OutlinedTextField(
+                value = value,
+                onValueChange = {},
+                readOnly = true,
+                placeholder = {  "Select DOB" },
+                modifier = Modifier.fillMaxWidth().padding(12.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    unfocusedContainerColor = Color.DarkGray,
+                    unfocusedIndicatorColor = Color.White,
+                    focusedContainerColor = Color.DarkGray,
+                    focusedIndicatorColor = Color.White
+                )
+            )
+            Box(
+                Modifier
+                    .matchParentSize()
+                    .background(Color.Transparent)
+                    .clickable { onClick() }
+            )
+        }
+    }
+}
+
 
 data class FanData
     (
     var name: String = "",
+    var dob: String = "",
     var country: String = "",
     var email: String = "",
     var password: String = "",

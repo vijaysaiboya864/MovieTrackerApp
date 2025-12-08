@@ -43,6 +43,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -51,6 +52,7 @@ import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import vijaysaiboya.movietrackerapp.madproject.fragments.MovieDetailsScreen
 import vijaysaiboya.movietrackerapp.madproject.fragments.MovieHomeScreen
+import vijaysaiboya.movietrackerapp.madproject.fragments.ProfileScreen
 import vijaysaiboya.movietrackerapp.madproject.fragments.SearchMoviesScreen
 import vijaysaiboya.movietrackerapp.madproject.fragments.WatchListScreen
 import vijaysaiboya.movietrackerapp.madproject.ui.theme.PrimaryBlack
@@ -60,12 +62,12 @@ import vijaysaiboya.movietrackerapp.madproject.ui.theme.PrimaryBlue
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen()
+    HomeScreen(homeNanController = NavHostController(LocalContext.current))
 }
 
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(homeNanController: NavHostController) {
     val navController = rememberNavController()
 
     val systemUiController = rememberSystemUiController()
@@ -80,13 +82,15 @@ fun HomeScreen() {
         }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            NavigationGraph(navController)
+            NavigationGraph(navController,homeNanController)
         }
     }
 }
 
 @Composable
-fun NavigationGraph(navController: NavHostController) {
+fun NavigationGraph(navController: NavHostController,homeNavController: NavHostController) {
+
+    val context = LocalContext.current
 
     NavHost(
         navController = navController,
@@ -103,6 +107,18 @@ fun NavigationGraph(navController: NavHostController) {
         composable(BottomNavItem.WatchLater.route) {
             WatchListScreen(navController)
         }
+
+        composable(AppScreens.Profile.route) {
+            ProfileScreen(
+                navController = homeNavController,
+                username = UserPrefs.getName(context),   // Replace with stored user data
+                email = UserPrefs.getEmail(context),
+                onLogout = {
+                    UserPrefs.markLoginStatus(context,false)
+                }
+            )
+        }
+
     }
 }
 

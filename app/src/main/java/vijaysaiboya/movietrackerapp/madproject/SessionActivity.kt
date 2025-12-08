@@ -63,6 +63,8 @@ fun SessionActivityScreen(navController: NavController) {
     var passwordVisible by remember { mutableStateOf(false) }
 
 
+
+
     val context = LocalContext.current.findActivity()
 
     Column(
@@ -211,12 +213,24 @@ fun SessionActivityScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(64.dp))
 
+        Text(
+            text = "I Forgot My Password",
+            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+            color = Color.White,
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .clickable {
+                navController.navigate(AppScreens.ForgotPassword.route)
+            }
+        )
+
+        Spacer(modifier = Modifier.height(64.dp))
+
 
         Row(
             verticalAlignment = Alignment.CenterVertically
         )
         {
-
             Spacer(
                 modifier = Modifier
                     .weight(1f) // Width of the line

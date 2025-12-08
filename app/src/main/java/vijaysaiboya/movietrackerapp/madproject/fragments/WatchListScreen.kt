@@ -1,6 +1,7 @@
 package vijaysaiboya.movietrackerapp.madproject.fragments
 
 
+import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -12,6 +13,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -40,12 +42,11 @@ import vijaysaiboya.movietrackerapp.madproject.ui.theme.PrimaryBlue
 fun WatchListScreen(navController: NavHostController) {
 
     val dao = MovieDatabase.getDatabase(LocalContext.current).movieDao()
-
+    val context = LocalContext.current
     var selectedTab by remember { mutableStateOf("later") }
     var movies by remember { mutableStateOf(listOf<MovieEntity>()) }
 
     val scope = rememberCoroutineScope()
-
 
     // Load movies when tab changes
     LaunchedEffect(selectedTab) {
@@ -58,16 +59,45 @@ fun WatchListScreen(navController: NavHostController) {
             .background(PrimaryBlack)
     ) {
 
-        // Header
-        Text(
-            "My Watchlist",
-            color = Color.White,
-            fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(16.dp)
-        )
+        // ================================
+        // HEADER WITH SHARE BUTTON
+        // ================================
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
 
-        // Tabs
+            Text(
+                "My Watchlist",
+                color = Color.White,
+                fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                fontWeight = FontWeight.Bold
+            )
+
+            // SHARE BUTTON
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(Color(0xFF3A3A40), CircleShape)
+                    .clickable {
+                        shareMovies(context, selectedTab, movies)
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Share,
+                    contentDescription = "Share",
+                    tint = Color.White
+                )
+            }
+        }
+
+        // ================================
+        // TAB BUTTONS
+        // ================================
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -90,10 +120,9 @@ fun WatchListScreen(navController: NavHostController) {
             }
         }
 
-
         Spacer(Modifier.height(16.dp))
 
-        // Empty view
+        // EMPTY VIEW
         if (movies.isEmpty()) {
             Box(Modifier.fillMaxSize(), Alignment.Center) {
                 Text("No movies added yet", color = Color.Gray)
@@ -101,7 +130,9 @@ fun WatchListScreen(navController: NavHostController) {
             return
         }
 
-        // MOVIE GRID
+        // =========================
+        // MOVIE GRID LIST
+        // =========================
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -127,6 +158,29 @@ fun WatchListScreen(navController: NavHostController) {
         }
     }
 }
+
+
+fun shareMovies(context: android.content.Context, category: String, movies: List<MovieEntity>) {
+
+    if (movies.isEmpty()) return
+
+    val title = if (category == "later") "My Watch Later Movies:" else "My Watched Movies:"
+
+    val movieList = movies.joinToString("\n") {
+        "• ${it.title}"
+    }
+
+    val shareText = "$title\n\n$movieList"
+
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_SUBJECT, "My Movie List")
+        putExtra(Intent.EXTRA_TEXT, shareText)
+    }
+
+    context.startActivity(Intent.createChooser(intent, "Share using"))
+}
+
 
 // ---------------------------------------------------------------
 // MOVIE CARD WITH DELETE ICON + CLICK SUPPORT

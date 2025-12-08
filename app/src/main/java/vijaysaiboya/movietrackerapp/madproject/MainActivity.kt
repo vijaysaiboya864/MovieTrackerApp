@@ -66,8 +66,12 @@ fun MyAppNavGraph() {
             AccountRegistrationScreen(navController = navController)
         }
 
+        composable(AppScreens.ForgotPassword.route) {
+            ForgotPasswordScreen(navController = navController)
+        }
+
         composable(AppScreens.Home.route) {
-            HomeScreen()
+            HomeScreen(homeNanController = navController)
         }
 
     }
