@@ -1,7 +1,7 @@
 package vijaysaiboya.movietrackerapp.madproject.fragments
 
-
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
@@ -36,6 +37,7 @@ import vijaysaiboya.movietrackerapp.madproject.ui.theme.PrimaryBlack
 @Composable
 fun ProfileScreen(
     navController: NavHostController,
+    homeNavController: NavHostController,
     username: String = "username",
     email: String = "email",
     onLogout: () -> Unit = {}
@@ -49,9 +51,37 @@ fun ProfileScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        // ==============================
-        // Profile Icon
-        // ==============================
+        // =======================================================
+        // 🔙 BACK BUTTON (Top-left floating)
+        // =======================================================
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .padding(4.dp)
+                    .size(42.dp)
+                    .background(Color(0x66000000), RoundedCornerShape(50))
+                    .align(Alignment.TopStart)
+                    .clickable { homeNavController.navigateUp() },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Back",
+                    tint = Color.White,
+                    modifier = Modifier.size(26.dp)
+                )
+            }
+        }
+
+        Spacer(Modifier.height(20.dp))
+
+        // =======================================================
+        // PROFILE ICON
+        // =======================================================
         Box(
             modifier = Modifier
                 .size(110.dp)
@@ -68,9 +98,9 @@ fun ProfileScreen(
 
         Spacer(Modifier.height(20.dp))
 
-        // ==============================
-        // User Info Card
-        // ==============================
+        // =======================================================
+        // USER INFO CARD
+        // =======================================================
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
@@ -112,14 +142,14 @@ fun ProfileScreen(
 
         Spacer(Modifier.height(40.dp))
 
-        // ==============================
-        // Logout Button
-        // ==============================
+        // =======================================================
+        // LOGOUT BUTTON
+        // =======================================================
         Button(
             onClick = {
-                onLogout()        // Clear login session
+                onLogout()
                 navController.navigate(AppScreens.Login.route) {
-                    popUpTo(0) { inclusive = true }  // Clear backstack
+                    popUpTo(0) { inclusive = true }
                 }
             },
             colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
@@ -137,4 +167,5 @@ fun ProfileScreen(
             Text("Logout", color = Color.White)
         }
     }
+
 }

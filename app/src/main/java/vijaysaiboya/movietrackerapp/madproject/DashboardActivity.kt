@@ -111,6 +111,7 @@ fun NavigationGraph(navController: NavHostController,homeNavController: NavHostC
         composable(AppScreens.Profile.route) {
             ProfileScreen(
                 navController = homeNavController,
+                homeNavController = navController,
                 username = UserPrefs.getName(context),   // Replace with stored user data
                 email = UserPrefs.getEmail(context),
                 onLogout = {

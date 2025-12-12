@@ -35,9 +35,6 @@ import vijaysaiboya.movietrackerapp.madproject.data.MovieEntity
 import vijaysaiboya.movietrackerapp.madproject.ui.theme.PrimaryBlack
 import vijaysaiboya.movietrackerapp.madproject.ui.theme.PrimaryBlue
 
-// ---------------------------------------------------------------
-// WATCHLIST SCREEN (FULL IMPLEMENTATION)
-// ---------------------------------------------------------------
 @Composable
 fun WatchListScreen(navController: NavHostController) {
 

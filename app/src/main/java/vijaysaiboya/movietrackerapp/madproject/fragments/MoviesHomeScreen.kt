@@ -7,6 +7,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -39,9 +43,6 @@ data class Movie(
     val genre: String = ""
 )
 
-// --------------------------------------------------------
-// UPDATED: Fetch imdbID also (required for See Details)
-// --------------------------------------------------------
 suspend fun fetchTopMovies(): List<Movie> {
     val url = "https://www.omdbapi.com/?apikey=$OMDB_KEY&s=top&type=movie"
 
@@ -63,7 +64,7 @@ suspend fun fetchTopMovies(): List<Movie> {
                     Movie(
                         title = obj.getString("Title"),
                         poster = obj.getString("Poster"),
-                        imdbId = obj.getString("imdbID")   // ⭐ Needed for details screen
+                        imdbId = obj.getString("imdbID")
                     )
                 )
             }
@@ -112,12 +113,16 @@ fun MovieHomeScreen(navController: NavHostController) {
 
             val movie = movies[currentIndex]
 
+            // ==========================
+            // MOVIE SLIDER BOX
+            // ==========================
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(heroHeight)
             ) {
 
+                // Poster
                 Image(
                     painter = rememberAsyncImagePainter(movie.poster),
                     contentDescription = movie.title,
@@ -138,9 +143,54 @@ fun MovieHomeScreen(navController: NavHostController) {
                             )
                         )
                 )
+
+                // ======================
+                // LEFT ARROW BUTTON
+                // ======================
+                IconButton(
+                    onClick = {
+                        currentIndex =
+                            if (currentIndex == 0) movies.lastIndex else currentIndex - 1
+                    },
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(start = 12.dp)
+                        .size(50.dp)
+                        .background(Color(0x55000000), CircleShape)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Previous movie",
+                        tint = Color.White,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+
+                // ======================
+                // RIGHT ARROW BUTTON
+                // ======================
+                IconButton(
+                    onClick = {
+                        currentIndex = (currentIndex + 1) % movies.size
+                    },
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 12.dp)
+                        .size(50.dp)
+                        .background(Color(0x55000000), CircleShape)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowForward,
+                        contentDescription = "Next movie",
+                        tint = Color.White,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
             }
 
-            // ----------- Slider Content ------------
+            // ==========================
+            // BOTTOM CONTENT
+            // ==========================
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -148,6 +198,7 @@ fun MovieHomeScreen(navController: NavHostController) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
+                // Title
                 Text(
                     movie.title,
                     color = Color.White,
@@ -157,10 +208,9 @@ fun MovieHomeScreen(navController: NavHostController) {
 
                 Spacer(Modifier.height(12.dp))
 
+                // Details Button
                 Button(
-                    onClick = {
-                        navController.navigate("details/${movie.imdbId}")
-                    },
+                    onClick = { navController.navigate("details/${movie.imdbId}") },
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
                     shape = RoundedCornerShape(30.dp),
                     modifier = Modifier.width(150.dp)
@@ -170,6 +220,7 @@ fun MovieHomeScreen(navController: NavHostController) {
 
                 Spacer(Modifier.height(18.dp))
 
+                // Slider Indicators (Dots)
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     repeat(movies.size) { idx ->
                         Box(
@@ -183,7 +234,8 @@ fun MovieHomeScreen(navController: NavHostController) {
                     }
                 }
             }
-        } else {
+        }
+        else {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center

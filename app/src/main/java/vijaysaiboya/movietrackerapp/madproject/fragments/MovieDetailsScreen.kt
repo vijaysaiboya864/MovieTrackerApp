@@ -226,16 +226,25 @@ fun MovieDetailsScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
 
+                        // ==============================
                         // WATCH LATER BUTTON
+                        // Disable if already Watched
+                        // ==============================
                         Button(
                             onClick = {
                                 scope.launch {
                                     saveMovieToDb(dao, m, "later")
                                     isWatchLater = true
+                                    isWatched = false   // ensure consistency
                                 }
                             },
+                            enabled = !isWatched,   // ❗ Disabled if movie is marked Watched
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isWatchLater) PrimaryBlue else Color.DarkGray
+                                containerColor = when {
+                                    isWatchLater -> PrimaryBlue
+                                    isWatched -> Color.DarkGray.copy(alpha = 0.3f) // Disabled look
+                                    else -> Color.DarkGray
+                                }
                             ),
                             shape = RoundedCornerShape(30.dp),
                             modifier = Modifier.weight(1f)
@@ -246,21 +255,30 @@ fun MovieDetailsScreen(
                                 tint = Color.White
                             )
                             Spacer(Modifier.width(8.dp))
-                            Text("Watch Later")
+                            Text("Watch Later", color = Color.White)
                         }
 
                         Spacer(Modifier.width(16.dp))
 
+                        // ==============================
                         // WATCHED BUTTON
+                        // Disable if already Watch Later
+                        // ==============================
                         Button(
                             onClick = {
                                 scope.launch {
                                     saveMovieToDb(dao, m, "watched")
                                     isWatched = true
+                                    isWatchLater = false   // ensure consistency
                                 }
                             },
+                            enabled = !isWatchLater,   // ❗ Disabled if movie is marked Watch Later
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isWatched) Color(0xFF4CAF50) else Color.DarkGray
+                                containerColor = when {
+                                    isWatched -> Color(0xFF4CAF50)
+                                    isWatchLater -> Color.DarkGray.copy(alpha = 0.3f) // Disabled look
+                                    else -> Color.DarkGray
+                                }
                             ),
                             shape = RoundedCornerShape(30.dp),
                             modifier = Modifier.weight(1f)
@@ -271,9 +289,10 @@ fun MovieDetailsScreen(
                                 tint = Color.White
                             )
                             Spacer(Modifier.width(8.dp))
-                            Text("Watched")
+                            Text("Watched", color = Color.White)
                         }
                     }
+
 
                     Spacer(Modifier.height(50.dp))
                 }
