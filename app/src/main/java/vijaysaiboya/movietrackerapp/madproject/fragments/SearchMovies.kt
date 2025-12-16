@@ -61,10 +61,8 @@ fun SearchMoviesScreen(navController: NavHostController) {
 
     val genres = listOf("All", "Action", "Comedy", "Drama", "Crime", "Romance", "Sci-Fi", "Thriller", "Other")
 
-    // Fast keywords for initial load
     val fastKeywords = listOf("movie", "best", "new")
 
-    // Load initial movies — FAST
     LaunchedEffect(Unit) {
         loading = true
 

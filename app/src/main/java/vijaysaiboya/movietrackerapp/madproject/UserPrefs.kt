@@ -1,42 +1,113 @@
 package vijaysaiboya.movietrackerapp.madproject
 
 import android.content.Context
+import androidx.core.content.edit
 
 
 object UserPrefs {
 
-    private const val PREFS_NAME = "POST_PREFS"
-    private const val KEY_IS_USER_LOGGED_IN = "KEY_IS_USER_LOGGED_IN"
-    private const val KEY_NAME = "KEY_NAME"
-    private const val KEY_EMAIL = "KEY_EMAIL"
+    // ==============================
+    // PREF FILE NAME
+    // ==============================
+    private const val PREFS_NAME = "MOVIE_TRACKER_PREFS"
 
-    fun markLoginStatus(context: Context, isLoggedIn: Boolean) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putBoolean(KEY_IS_USER_LOGGED_IN, isLoggedIn).apply()
+    // ==============================
+    // KEYS
+    // ==============================
+    private const val KEY_IS_LOGGED_IN = "KEY_IS_LOGGED_IN"
+    private const val KEY_USER_NAME = "KEY_USER_NAME"
+    private const val KEY_USER_EMAIL = "KEY_USER_EMAIL"
+    private const val KEY_USER_DOB = "KEY_USER_DOB"
+    private const val KEY_USER_COUNTRY = "KEY_USER_COUNTRY"
+
+    // ==============================
+    // LOGIN STATUS
+    // ==============================
+    fun setLoginStatus(context: Context, isLoggedIn: Boolean) {
+        getPrefs(context)
+            .edit {
+                putBoolean(KEY_IS_LOGGED_IN, isLoggedIn)
+            }
     }
 
-    fun checkLoginStatus(context: Context): Boolean {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs.getBoolean(KEY_IS_USER_LOGGED_IN, false)
+    fun isUserLoggedIn(context: Context): Boolean {
+        return getPrefs(context)
+            .getBoolean(KEY_IS_LOGGED_IN, false)
     }
 
-    fun saveName(context: Context, name: String) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putString(KEY_NAME, name).apply()
+    // ==============================
+    // USER NAME
+    // ==============================
+    fun saveUserName(context: Context, name: String) {
+        getPrefs(context)
+            .edit {
+                putString(KEY_USER_NAME, name)
+            }
     }
 
-    fun getName(context: Context): String {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs.getString(KEY_NAME, "") ?: ""
+    fun getUserName(context: Context): String {
+        return getPrefs(context)
+            .getString(KEY_USER_NAME, "") ?: ""
     }
 
-    fun saveEmail(context: Context, email: String) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putString(KEY_EMAIL, email).apply()
+    // ==============================
+    // USER EMAIL
+    // ==============================
+    fun saveUserEmail(context: Context, email: String) {
+        getPrefs(context)
+            .edit {
+                putString(KEY_USER_EMAIL, email)
+            }
     }
 
-    fun getEmail(context: Context): String {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs.getString(KEY_EMAIL, "") ?: ""
+    fun getUserEmail(context: Context): String {
+        return getPrefs(context)
+            .getString(KEY_USER_EMAIL, "") ?: ""
     }
+
+    // ==============================
+    // USER DATE OF BIRTH
+    // ==============================
+    fun saveUserDob(context: Context, dob: String) {
+        getPrefs(context)
+            .edit {
+                putString(KEY_USER_DOB, dob)
+            }
+    }
+
+    fun getUserDob(context: Context): String {
+        return getPrefs(context)
+            .getString(KEY_USER_DOB, "") ?: ""
+    }
+
+    // ==============================
+    // USER COUNTRY
+    // ==============================
+    fun saveUserCountry(context: Context, country: String) {
+        getPrefs(context)
+            .edit {
+                putString(KEY_USER_COUNTRY, country)
+            }
+    }
+
+    fun getUserCountry(context: Context): String {
+        return getPrefs(context)
+            .getString(KEY_USER_COUNTRY, "") ?: ""
+    }
+
+    // ==============================
+    // CLEAR USER DATA (LOGOUT)
+    // ==============================
+    fun clearUserSession(context: Context) {
+        getPrefs(context)
+            .edit {
+                clear()
+            }
+    }
+
+    // ==============================
+    // PRIVATE HELPER
+    // ==============================
+    private fun getPrefs(context: Context) =
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 }

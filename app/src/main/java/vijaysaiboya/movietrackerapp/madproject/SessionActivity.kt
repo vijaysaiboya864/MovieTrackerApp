@@ -297,12 +297,14 @@ fun loginFanAccount(
 
                     if (hashedPassword == it.password) {
 
-                        UserPrefs.markLoginStatus(context, true)
-                        UserPrefs.saveEmail(
+                        UserPrefs.setLoginStatus(context, true)
+                        UserPrefs.saveUserEmail(
                             context,
                             email = userEmail
                         )
-                        UserPrefs.saveName(context, it.name)
+                        UserPrefs.saveUserName(context, it.name)
+                        UserPrefs.saveUserDob(context, it.dob)
+                        UserPrefs.saveUserCountry(context, it.country)
 
 
                         Toast.makeText(context, "Login Successfull", Toast.LENGTH_SHORT).show()

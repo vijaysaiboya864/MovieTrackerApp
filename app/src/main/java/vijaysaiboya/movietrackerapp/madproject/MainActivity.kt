@@ -87,7 +87,7 @@ fun OnBoardingScreen(navController: NavController) {
     LaunchedEffect(Unit) {
         delay(3000)
 
-        if (UserPrefs.checkLoginStatus(context)) {
+        if (UserPrefs.isUserLoggedIn(context)) {
             navController.navigate(AppScreens.Home.route) {
                 popUpTo(AppScreens.Splash.route) {
                     inclusive = true
