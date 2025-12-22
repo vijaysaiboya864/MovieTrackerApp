@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.Feedback
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
@@ -50,6 +51,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import vijaysaiboya.movietrackerapp.madproject.fragments.FeedbackScreen
 import vijaysaiboya.movietrackerapp.madproject.fragments.MovieDetailsScreen
 import vijaysaiboya.movietrackerapp.madproject.fragments.MovieHomeScreen
 import vijaysaiboya.movietrackerapp.madproject.fragments.ProfileScreen
@@ -108,6 +110,10 @@ fun NavigationGraph(navController: NavHostController,homeNavController: NavHostC
             WatchListScreen(navController)
         }
 
+        composable(BottomNavItem.Feedback.route) {
+            FeedbackScreen(navController)
+        }
+
         composable(AppScreens.Profile.route) {
 //            ProfileScreen(
 //                navController = homeNavController,
@@ -137,6 +143,7 @@ sealed class BottomNavItem(val route: String, val title: String, val icon: Image
     object Films : BottomNavItem("films", "Home", Icons.Outlined.Home)
     object Watched : BottomNavItem("watched", "Search", Icons.Outlined.Search)
     object WatchLater : BottomNavItem("watchlater", "Saved", Icons.Outlined.Favorite)
+    object Feedback : BottomNavItem("feedback", "Feedback", Icons.Outlined.Feedback)
 }
 
 
@@ -147,7 +154,8 @@ fun CustomBottomBar(
     val items = listOf(
         BottomNavItem.Films,
         BottomNavItem.Watched,
-        BottomNavItem.WatchLater
+        BottomNavItem.WatchLater,
+        BottomNavItem.Feedback
     )
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()

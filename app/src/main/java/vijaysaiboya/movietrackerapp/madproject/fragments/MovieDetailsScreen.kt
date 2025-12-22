@@ -3,6 +3,7 @@ package vijaysaiboya.movietrackerapp.madproject.fragments
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,13 +28,16 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -52,10 +56,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import vijaysaiboya.movietrackerapp.madproject.UserPrefs
 import vijaysaiboya.movietrackerapp.madproject.data.MovieDao
 import vijaysaiboya.movietrackerapp.madproject.data.MovieDatabase
 import vijaysaiboya.movietrackerapp.madproject.data.MovieEntity
@@ -63,6 +69,7 @@ import vijaysaiboya.movietrackerapp.madproject.ui.theme.PrimaryBlack
 import vijaysaiboya.movietrackerapp.madproject.ui.theme.PrimaryBlue
 import java.net.HttpURLConnection
 import java.net.URL
+import kotlin.jvm.java
 
 @Composable
 fun MovieDetailsScreen(
@@ -71,6 +78,8 @@ fun MovieDetailsScreen(
 ) {
     var movie by remember { mutableStateOf<MovieDetails?>(null) }
     var loading by remember { mutableStateOf(true) }
+
+    var reviewsLoading by remember { mutableStateOf(true) }
 
     val dao = MovieDatabase.getDatabase(LocalContext.current).movieDao()
     val scope = rememberCoroutineScope()
@@ -81,9 +90,20 @@ fun MovieDetailsScreen(
 
     val context = LocalContext.current
 
+    var userRating by remember { mutableStateOf(0) }
+    var userReview by remember { mutableStateOf("") }
+    var reviews by remember { mutableStateOf(listOf<MovieReview>()) }
+    var hasUserReviewed by remember { mutableStateOf(false) }
+
+    val userEmail = UserPrefs.getUserEmail(context)
+    val userName = UserPrefs.getUserName(context)
+
+
     // Load movie + saved status
     LaunchedEffect(Unit) {
         movie = fetchMovieDetails(imdbId)
+
+        Log.e("Test","Movie Id - ${imdbId}")
 
         // Check if movie exists in DB
         val laterList = dao.getMoviesByCategory("later")
@@ -93,6 +113,35 @@ fun MovieDetailsScreen(
         isWatched = watchedList.any { it.imdbId == imdbId }
 
         loading = false
+
+
+        val reviewRef = FirebaseDatabase.getInstance()
+            .getReference("MovieReviews")
+            .child(imdbId)
+        reviewRef.get().addOnSuccessListener { snapshot ->
+
+            val list = mutableListOf<MovieReview>()
+
+            if (snapshot.exists()) {
+                snapshot.children.forEach { child ->
+                    val review = child.getValue(MovieReview::class.java)
+                    review?.let {
+                        list.add(it)
+                        if (it.userEmail == userEmail) {
+                            hasUserReviewed = true
+                        }
+                    }
+                }
+            }
+
+            reviews = list.sortedByDescending { it.timestamp }
+            reviewsLoading = false   // ✅ ALWAYS stop loading
+        }
+            .addOnFailureListener {
+                reviewsLoading = false   // ✅ Also stop on error
+            }
+
+
     }
 
     if (loading) {
@@ -339,6 +388,104 @@ fun MovieDetailsScreen(
 
                     }
 
+                    Spacer(Modifier.height(24.dp))
+
+                    if(reviewsLoading)
+                    {
+                        Text("Loading Reviews", color = Color.Gray, modifier = Modifier.align(Alignment.CenterHorizontally))
+
+                    }else {
+
+                        if (!hasUserReviewed) {
+
+                            InfoCard {
+
+                                Text(
+                                    "Rate & Review",
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp
+                                )
+
+                                Spacer(Modifier.height(12.dp))
+
+                                StarRating(
+                                    rating = userRating,
+                                    onRatingSelected = { userRating = it }
+                                )
+
+                                Spacer(Modifier.height(12.dp))
+
+                                OutlinedTextField(
+                                    value = userReview,
+                                    onValueChange = { userReview = it },
+                                    placeholder = { Text("Write your review...") },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    maxLines = 4,
+                                    colors = TextFieldDefaults.colors(
+                                        focusedTextColor = Color.White,
+                                        unfocusedTextColor = Color.White,
+                                        unfocusedContainerColor = Color.DarkGray,
+                                        unfocusedIndicatorColor = Color.White,
+                                        focusedContainerColor = Color.DarkGray,
+                                        focusedIndicatorColor = Color.White
+                                    )
+                                )
+
+                                Spacer(Modifier.height(12.dp))
+
+                                Button(
+                                    onClick = {
+                                        if (userRating == 0 || userReview.isBlank()) return@Button
+
+                                        val review = MovieReview(
+                                            userEmail = userEmail,
+                                            userName = userName,
+                                            rating = userRating,
+                                            review = userReview,
+                                            timestamp = System.currentTimeMillis()
+                                        )
+
+                                        FirebaseDatabase.getInstance()
+                                            .getReference("MovieReviews")
+                                            .child(imdbId)
+                                            .child(userEmail.replace(".", ","))
+                                            .setValue(review)
+                                            .addOnSuccessListener {
+                                                hasUserReviewed = true
+                                                reviews = listOf(review) + reviews
+                                            }
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text("Submit Review")
+                                }
+                            }
+                        }
+
+
+                        Spacer(Modifier.height(24.dp))
+
+                        if (reviews.isNotEmpty()) {
+
+                            Text(
+                                "User Reviews",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp
+                            )
+
+                            Spacer(Modifier.height(12.dp))
+
+                            reviews.forEach { review ->
+                                ReviewItem(review)
+                                Spacer(Modifier.height(12.dp))
+                            }
+                        }
+
+                    }
+
 
                     Spacer(Modifier.height(50.dp))
                 }
@@ -432,3 +579,55 @@ data class MovieDetails(
     val awards: String,
     val boxOffice: String
 )
+
+
+
+// Movie Review Code
+
+data class MovieReview(
+    val userEmail: String = "",
+    val userName: String = "",
+    val rating: Int = 0,
+    val review: String = "",
+    val timestamp: Long = 0L
+)
+
+@Composable
+fun StarRating(
+    rating: Int,
+    onRatingSelected: (Int) -> Unit
+) {
+    Row {
+        for (i in 1..5) {
+            Icon(
+                imageVector = Icons.Default.Star,
+                contentDescription = null,
+                tint = if (i <= rating) Color.Yellow else Color.Gray,
+                modifier = Modifier
+                    .size(32.dp)
+                    .clickable { onRatingSelected(i) }
+            )
+        }
+    }
+}
+
+@Composable
+fun ReviewItem(review: MovieReview) {
+    InfoCard {
+
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(review.userName, color = Color.White, fontWeight = FontWeight.Bold)
+            Text("⭐ ${review.rating}", color = Color.Yellow)
+        }
+
+        Spacer(Modifier.height(6.dp))
+
+        Text(
+            review.review,
+            color = Color.LightGray
+        )
+    }
+}
