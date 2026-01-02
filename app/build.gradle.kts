@@ -8,11 +8,11 @@ plugins {
 }
 
 android {
-    namespace = "vijaysaiboya.movietrackerapp.madproject"
+    namespace = "vijaysaiapp.project3493864.movietracker"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "vijaysaiboya.movietrackerapp.madproject"
+        applicationId = "vijaysaiapp.project3493864.movietracker"
         minSdk = 24
         targetSdk = 36
         versionCode = 1

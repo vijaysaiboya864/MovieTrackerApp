@@ -1,15 +1,16 @@
 {
   "project_info": {
     "project_number": "189139882455",
+    "firebase_url": "https://movietrackerapp-f863a-default-rtdb.firebaseio.com",
     "project_id": "movietrackerapp-f863a",
     "storage_bucket": "movietrackerapp-f863a.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:189139882455:android:92c87c8e147f7d3028fb92",
+        "mobilesdk_app_id": "1:189139882455:android:f97dce2a43ab921128fb92",
         "android_client_info": {
-          "package_name": "vijaysaiboya.movietrackerapp.madproject"
+          "package_name": "vijaysaiapp.project3493864.movietracker"
         }
       },
       "oauth_client": [],
